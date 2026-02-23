@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Translator | Secure Access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #0f2027, #000);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* TECH GRID BACKGROUND */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(-200px, -200px);
+            }
+        }
+
+        /* FLOATING PARTICLES */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: cyan;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 12s infinite ease-in-out;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translateY(-800px);
+                opacity: 0;
+            }
+        }
+
+        /* USER PROFILE UI */
+        .header-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .profile-container {
+            position: relative;
+        }
+
+        .profile-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #00f2fe;
+            font-size: 22px;
+            backdrop-filter: blur(5px);
+        }
+
+        .profile-icon:hover {
+            transform: scale(1.1);
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            width: 240px;
+            background: rgba(15, 32, 39, 0.95);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            animation: dropFade 0.3s ease;
+        }
+
+        @keyframes dropFade {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-dropdown.active {
+            display: flex;
+        }
+
+        .user-info {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+
+        .user-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #4facfe;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: white;
+            word-break: break-all;
+        }
+
+        .logout-btn-nav {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .logout-btn-nav:hover {
+            background: rgba(255, 107, 107, 0.2);
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.2);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 255, 0.1);
+            width: 100%;
+            max-width: 1200px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: popIn 1s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .translate-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            min-height: 450px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+        }
+
+        .column:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.05);
+        }
+
+        .column-title {
+            font-size: 1.1em;
+            color: #4facfe;
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .text-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .language-section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 5px;
+            position: relative;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        select option {
+            background: #0f2027;
+            color: white;
+        }
+
+        .input-section {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+
+        .input-section:focus-within {
+            border-color: #00f2fe;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 15px;
+            resize: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .speaker-section {
+            padding: 10px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .speaker-icon {
+            width: 35px;
+            height: 35px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #00f2fe;
+            font-size: 18px;
+        }
+
+        .speaker-icon:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .speaker-icon.speaking {
+            animation: speakerPulse 1s infinite;
+            background: #4facfe;
+            color: black;
+        }
+
+        @keyframes speakerPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0px rgba(0, 255, 255, 0);
+            }
+
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0px rgba(0, 255, 255, 0);
+            }
+        }
+
+        .language-checkboxes {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .language-checkboxes::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .language-checkboxes::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .language-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .language-checkbox:hover {
+            background: rgba(0, 255, 255, 0.08);
+            border-color: rgba(0, 255, 255, 0.1);
+        }
+
+        .language-checkbox input {
+            accent-color: #00f2fe;
+            width: 18px;
+            height: 18px;
+        }
+
+        .translate-btn {
+            margin-top: auto;
+            padding: 15px;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border: none;
+            border-radius: 10px;
+            color: black;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .translate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .translate-btn:active {
+            transform: translateY(0);
+        }
+
+        .translate-btn.loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .translations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .translations-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .translations-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .translation-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            animation: itemSlideIn 0.4s ease forwards;
+        }
+
+        @keyframes itemSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .translation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 8px;
+        }
+
+        .translation-language {
+            color: #4facfe;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .translation-content {
+            font-size: 15px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 900px) {
+            .translate-box {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- PARTICLES -->
+    <div class="particle" style="left:10%; animation-delay:0s;"></div>
+    <div class="particle" style="left:30%; animation-delay:2s;"></div>
+    <div class="particle" style="left:50%; animation-delay:4s;"></div>
+    <div class="particle" style="left:70%; animation-delay:1s;"></div>
+    <div class="particle" style="left:90%; animation-delay:3s;"></div>
+
+    <!-- HEADER CONTROLS -->
+    <div class="header-controls">
+        <div class="profile-container">
+            <div class="profile-icon" id="profileToggle">👤</div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="user-info">
+                    <div class="user-label">Logged In User</div>
+                    <div class="user-email" id="userEmail">Detecting session...</div>
+                </div>
+                <button class="logout-btn-nav" id="logoutBtn">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Tech Translator</h1>
+
+        <div class="translate-box">
+            <!-- INPUT COLUMN -->
+            <div class="column">
+                <div class="column-title">Input Stream</div>
+                <div class="text-box">
+                    <div class="language-section">
+                        <select id="from-lang">
+                            <option value="en">English</option>
+                            <option value="hi">हिंदी (Hindi)</option>
+                            <option value="te">తెలుగు (Telugu)</option>
+                            <option value="ja">日本語 (Japanese)</option>
+                            <option value="es">Español (Spanish)</option>
+                            <option value="ko">한국어 (Korean)</option>
+                            <option value="ar">العربية (Arabic)</option>
+                        </select>
+                    </div>
+                    <div class="input-section">
+                        <textarea id="from-text" placeholder="Initialize input text sequence..."></textarea>
+                        <div class="speaker-section">
+                            <div class="speaker-icon"
+                                onclick="speakText(document.getElementById('from-text').value, document.getElementById('from-lang').value, this)">
+                                🔊
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TARGET SELECTION -->
+            <div class="column">
+                <div class="column-title">Output Protocols</div>
+                <div class="language-checkboxes">
+                    <label class="language-checkbox"><input type="checkbox" value="hi"> हिंदी (Hindi)</label>
+                    <label class="language-checkbox"><input type="checkbox" value="te"> తెలుగు (Telugu)</label>
+                    <label class="language-checkbox"><input type="checkbox" value="ja"> 日本語 (Japanese)</label>
+                    <label class="language-checkbox"><input type="checkbox" value="es"> Español (Spanish)</label>
+                    <label class="language-checkbox"><input type="checkbox" value="ko"> 한국어 (Korean)</label>
+                    <label class="language-checkbox"><input type="checkbox" value="ar"> العربية (Arabic)</label>
+                    <label class="language-checkbox"><input type="checkbox" value="en"> English</label>
+                </div>
+                <button class="translate-btn" onclick="translateText()">
+                    <span>🔄</span> Execute Translation
+                </button>
+            </div>
+
+            <!-- RESULTS -->
+            <div class="column">
+                <div class="column-title">Processed Data</div>
+                <div class="translations-list" id="translations-container">
+                    <div style="opacity: 0.3; text-align: center; margin-top: 50px; font-style: italic;">
+                        System idle. Awaiting input stream...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE INTEGRATION -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+        // 🔥 FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZXP-uxdgbYGEmVhI1o3j4lIjQ8dSySo8",
+            authDomain: "simple-login-page-9f7eb.firebaseapp.com",
+            projectId: "simple-login-page-9f7eb",
+            storageBucket: "simple-login-page-9f7eb.firebasestorage.app",
+            messagingSenderId: "654019199218",
+            appId: "1:654019199218:web:2a9aed3651640bfb70506b",
+            measurementId: "G-G96L211G0P"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const emailDisplay = document.getElementById("userEmail");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        // CHECK AUTH STATE
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                emailDisplay.textContent = user.email;
+            } else {
+                // Not logged in -> Redirect to login
+                window.location.href = "login.html";
+            }
+        });
+
+        // HANDLE LOGOUT
+        logoutBtn.addEventListener("click", () => {
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            });
+        });
+
+        // UI: DROPDOWN TOGGLE
+        const toggle = document.getElementById("profileToggle");
+        const dropdown = document.getElementById("profileDropdown");
+
+        toggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle("active");
+        });
+
+        document.addEventListener("click", () => {
+            dropdown.classList.remove("active");
+        });
+
+        dropdown.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+    </script>
+
+    <script>
+        const languages = {
+            'en': 'English', 'hi': 'हिंदी (Hindi)', 'te': 'తెలుగు (Telugu)',
+            'ja': '日本語 (Japanese)', 'es': 'Español (Spanish)',
+            'ko': '한국어 (Korean)', 'ar': 'العربية (Arabic)'
+        };
+
+        const speechLanguages = {
+            'en': 'en-US', 'hi': 'hi-IN', 'te': 'te-IN',
+            'ja': 'ja-JP', 'es': 'es-ES', 'ko': 'ko-KR', 'ar': 'ar-SA'
+        };
+
+        async function translateText() {
+            const fromText = document.getElementById('from-text').value;
+            const fromLang = document.getElementById('from-lang').value;
+            const btn = document.querySelector('.translate-btn');
+            const container = document.getElementById('translations-container');
+
+            if (!fromText.trim()) return;
+
+            const selectedLangs = Array.from(document.querySelectorAll('.language-checkbox input:checked'))
+                .map(cb => cb.value);
+
+            if (selectedLangs.length === 0) {
+                alert('Select at least one target protocol.');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.innerHTML = '<span>⚡</span> Processing...';
+            btn.disabled = true;
+
+            try {
+                let html = '';
+                for (const toLang of selectedLangs) {
+                    if (toLang === fromLang) continue;
+
+                    const apiUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodeURIComponent(fromText)}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    const translatedText = data[0].map(item => item[0]).join('');
+
+                    html += `
+                        <div class="translation-item">
+                            <div class="translation-header">
+                                <span class="translation-language">${languages[toLang]}</span>
+                                <div class="speaker-icon" onclick="speakText(\`${translatedText.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, '${toLang}', this)">
+                                    🔊
+                                </div>
+                            </div>
+                            <div class="translation-content">${translatedText}</div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html || '<div style="opacity:0.3;text-align:center;">No output stream generated.</div>';
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div style="color:#ff6b6b; text-align:center; padding:20px;">Buffer error: Translation failed.</div>';
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<span>🔄</span> Execute Translation';
+                btn.disabled = false;
+            }
+        }
+
+        function speakText(text, lang, element) {
+            if (!text || window.speechSynthesis.speaking) return;
+
+            // Cancel any current speech
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = speechLanguages[lang] || lang;
+
+            // Speed adjustments
+            utterance.rate = (lang === 'te' || lang === 'hi') ? 0.85 : 0.95;
+
+            element.classList.add('speaking');
+
+            utterance.onend = () => element.classList.remove('speaking');
+            utterance.onerror = () => element.classList.remove('speaking');
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Initialize voices on interaction or load
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+    </script>
+</body>
+
+</html>

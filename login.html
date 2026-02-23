@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tech Login | Firebase</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top, #0f2027, #000);
+            color: white;
+        }
+
+        /* TECH GRID BACKGROUND */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(-200px, -200px);
+            }
+        }
+
+        /* FLOATING PARTICLES */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: cyan;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 12s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translateY(-800px);
+                opacity: 0;
+            }
+        }
+
+        /* LOGIN CARD */
+        .login-card {
+            position: relative;
+            z-index: 2;
+            width: 360px;
+            padding: 35px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 18px;
+            box-shadow: 0 30px 60px rgba(0, 255, 255, 0.25);
+            animation: popIn 1.2s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            transform: scale(1.03);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: black;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.6);
+        }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        @media (max-width: 420px) {
+            .login-card {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- FLOATING PARTICLES -->
+    <div class="particle" style="left:10%; animation-delay:0s;"></div>
+    <div class="particle" style="left:30%; animation-delay:2s;"></div>
+    <div class="particle" style="left:50%; animation-delay:4s;"></div>
+    <div class="particle" style="left:70%; animation-delay:1s;"></div>
+    <div class="particle" style="left:90%; animation-delay:3s;"></div>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+        <h2>Secure Login</h2>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <!-- FIREBASE LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+        // 🔥 PASTE YOUR CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZXP-uxdgbYGEmVhI1o3j4lIjQ8dSySo8",
+            authDomain: "simple-login-page-9f7eb.firebaseapp.com",
+            projectId: "simple-login-page-9f7eb",
+            storageBucket: "simple-login-page-9f7eb.firebasestorage.app",
+            messagingSenderId: "654019199218",
+            appId: "1:654019199218:web:2a9aed3651640bfb70506b",
+            measurementId: "G-G96L211G0P"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const form = document.getElementById("loginForm");
+        const message = document.getElementById("message");
+        const btn = document.querySelector(".login-btn");
+        const title = document.querySelector("h2");
+
+        // Create Toggle Link
+        const toggleDiv = document.createElement("div");
+        toggleDiv.style.marginTop = "15px";
+        toggleDiv.style.textAlign = "center";
+        toggleDiv.style.fontSize = "14px";
+        toggleDiv.innerHTML = `
+      <span id="toggleText" style="opacity: 0.8">New here? </span>
+      <a href="#" id="toggleLink" style="color: #4facfe; text-decoration: none; font-weight: bold;">Create an account</a>
+    `;
+        document.querySelector(".login-card").appendChild(toggleDiv);
+
+        let isLoginMode = true;
+        const toggleLink = document.getElementById("toggleLink");
+        const toggleText = document.getElementById("toggleText");
+
+        toggleLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                title.textContent = "Secure Login";
+                btn.textContent = "Login";
+                toggleText.textContent = "New here? ";
+                toggleLink.textContent = "Create an account";
+            } else {
+                title.textContent = "Create Account";
+                btn.textContent = "Sign Up";
+                toggleText.textContent = "Already have an account? ";
+                toggleLink.textContent = "Login";
+            }
+            message.textContent = "";
+        });
+
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            message.textContent = "";
+            btn.textContent = isLoginMode ? "Authenticating..." : "Creating Account...";
+
+            const authAction = isLoginMode
+                ? signInWithEmailAndPassword(auth, email, password)
+                : createUserWithEmailAndPassword(auth, email, password);
+
+            authAction
+                .then(async (userCredential) => {
+                    const user = userCredential.user;
+                    const loginTime = new Date().toISOString();
+
+                    // Store login details in Firestore (Non-blocking)
+                    addDoc(collection(db, "logins"), {
+                        email: user.email,
+                        uid: user.uid,
+                        type: isLoginMode ? "login" : "signup",
+                        timestamp: loginTime
+                    }).catch(console.error);
+
+                    btn.textContent = "Success!";
+                    message.textContent = isLoginMode ? "Welcome back! 👨‍💻" : "Account Created! 🎉";
+                    message.style.color = "#4facfe";
+
+                    setTimeout(() => {
+                        window.location.href = "success.html";
+                    }, 1500);
+                })
+                .catch(err => {
+                    btn.textContent = isLoginMode ? "Login" : "Sign Up";
+                    message.textContent = err.message.replace("Firebase: ", "");
+                    message.style.color = "#ff6b6b";
+                });
+        });
+    </script>
+
+</body>
+
+</html>
